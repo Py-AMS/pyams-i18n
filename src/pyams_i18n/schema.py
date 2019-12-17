@@ -12,6 +12,7 @@
 
 """PyAMS_i18n.schema module
 
+This module provides custom schema fields to support contents internationalization.
 """
 
 from persistent.mapping import PersistentMapping
@@ -32,6 +33,7 @@ class DefaultValueDict(PersistentMapping):
     """Persistent mapping with default value"""
 
     def __init__(self, default=None, *args, **kwargs):
+        # pylint: disable=keyword-arg-before-vararg
         super(DefaultValueDict, self).__init__(*args, **kwargs)
         self._default = default
 
@@ -43,10 +45,8 @@ class DefaultValueDict(PersistentMapping):
         if result is _MARKER:
             if default is not None:
                 return default
-            else:
-                return self._default
-        else:
-            return result
+            return self._default
+        return result
 
     def copy(self):
         return DefaultValueDict(default=self._default, **self)
@@ -91,6 +91,7 @@ class I18nTextLineField(I18nField):
 
     def __init__(self, key_type=None, value_type=None, default=None,
                  value_constraint=None, value_min_length=0, value_max_length=None, **kwargs):
+        # pylint: disable=too-many-arguments
         super(I18nTextLineField, self).__init__(value_type=TextLine(constraint=value_constraint,
                                                                     min_length=value_min_length,
                                                                     max_length=value_max_length,
@@ -109,6 +110,7 @@ class I18nTextField(I18nField):
 
     def __init__(self, key_type=None, value_type=None, default=None,
                  value_constraint=None, value_min_length=0, value_max_length=None, **kwargs):
+        # pylint: disable=too-many-arguments
         super(I18nTextField, self).__init__(value_type=Text(constraint=value_constraint,
                                                             min_length=value_min_length,
                                                             max_length=value_max_length,
@@ -127,6 +129,7 @@ class I18nHTMLField(I18nField):
 
     def __init__(self, key_type=None, value_type=None, default=None,
                  value_constraint=None, value_min_length=0, value_max_length=None, **kwargs):
+        # pylint: disable=too-many-arguments
         super(I18nHTMLField, self).__init__(value_type=HTMLField(constraint=value_constraint,
                                                                  min_length=value_min_length,
                                                                  max_length=value_max_length,

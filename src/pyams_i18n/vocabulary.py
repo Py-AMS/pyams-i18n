@@ -10,8 +10,9 @@
 # FOR A PARTICULAR PURPOSE.
 #
 
-"""PyAMS_*** module
+"""PyAMS_i18n.vocabulary module
 
+This module provides named vocabularies for offered and selected content languages.
 """
 
 from zope.schema.vocabulary import SimpleTerm, SimpleVocabulary
@@ -27,21 +28,22 @@ from pyams_utils.vocabulary import vocabulary_config
 
 __docformat__ = 'restructuredtext'
 
-from pyams_i18n import _
+from pyams_i18n import _  # pylint: disable=ungrouped-imports
 
 
 @vocabulary_config(name=OFFERED_LANGUAGES_VOCABULARY_NAME)
 class I18nOfferedLanguages(SimpleVocabulary):
     """I18n offered languages vocabulary"""
 
-    def __init__(self, context):
+    def __init__(self, context=None):  # pylint: disable=unused-argument
         terms = []
         negotiator = query_utility(INegotiator)
         if negotiator is not None:
             translate = check_request().localizer.translate
             for lang in negotiator.offered_languages:
-                terms.append(SimpleTerm(lang, title=translate(BASE_LANGUAGES.get(lang) or
-                                                              _("<unknown>"))))
+                terms.append(SimpleTerm(lang,
+                                        title=translate(
+                                            BASE_LANGUAGES.get(lang) or _("<unknown>"))))
         super(I18nOfferedLanguages, self).__init__(terms)
 
 
@@ -55,11 +57,13 @@ class I18nContentLanguages(SimpleVocabulary):
         negotiator = query_utility(INegotiator)
         if negotiator is not None:
             terms.append(SimpleTerm(negotiator.server_language,
-                                    title=translate(BASE_LANGUAGES.get(negotiator.server_language))))
+                                    title=translate(
+                                        BASE_LANGUAGES.get(negotiator.server_language))))
         manager = get_parent(context, II18nManager)
         if manager is not None:
-            for lang in manager.languages:
+            for lang in manager.languages:  # pylint: disable=not-an-iterable
                 if (negotiator is None) or (lang != negotiator.server_language):
-                    terms.append(SimpleTerm(lang, title=translate(BASE_LANGUAGES.get(lang) or
-                                                                  _("<unknown>"))))
+                    terms.append(SimpleTerm(lang,
+                                            title=translate(
+                                                BASE_LANGUAGES.get(lang) or _("<unknown>"))))
         super(I18nContentLanguages, self).__init__(terms)

@@ -12,6 +12,7 @@
 
 """PyAMS_i18n.attr module
 
+This module provides the main II18n adapter, which is used to get value of translated properties.
 """
 
 from pyramid.exceptions import NotFound
@@ -34,7 +35,8 @@ class I18nAttributeTraverser(ContextAdapter):
     This traverser is used, for example, by I18n file fields (see :py:mod:pyams_file).
     """
 
-    def traverse(self, name, furtherpath=None):
+    def traverse(self, name, furtherpath=None):  # pylint: disable=unused-argument
+        """Traverse to selected attribute"""
         try:
             attr, lang = name.split(':')
             return getattr(self.context, attr, {}).get(lang)
@@ -47,6 +49,7 @@ class I18nAttributeAdapter(ContextAdapter):
     """I18n attribute adapter"""
 
     def get_attribute(self, attribute, lang=None, request=None, default=None):
+        """Extract attribute value for given language or request"""
         result = getattr(self.context, attribute)
         if not isinstance(result, dict):
             return default
@@ -57,6 +60,10 @@ class I18nAttributeAdapter(ContextAdapter):
         return result.get(lang, default)
 
     def query_attribute(self, attribute, lang=None, request=None):
+        """Extract attribute value for given language or request
+
+        If value is empty or None, value associated to server language is returned.
+        """
         result = getattr(self.context, attribute)
         if not isinstance(result, dict):
             return result

@@ -30,7 +30,7 @@ def include_package(config):
     config.add_translation_dirs('pyams_i18n:locales')
 
     # add custom locale negotiator
-    from .negotiator import get_locale, locale_negotiator
+    from .negotiator import get_locale, locale_negotiator  # pylint: disable=import-outside-toplevel
     config.add_request_method(get_locale, 'locale', reify=True)
     config.set_locale_negotiator(locale_negotiator)
 

@@ -12,6 +12,8 @@
 
 """PyAMS_i18n.content module
 
+This module provides a single class which is an I18n "manager"; this mixin class is used to
+support setting of "offered" languages which will be usable for contents translations.
 """
 
 from zope.interface import implementer
@@ -25,12 +27,13 @@ __docformat__ = 'restructuredtext'
 
 
 @implementer(II18nManager)
-class I18nManagerMixin(object):
+class I18nManagerMixin:
     """I18n manager class mixin"""
 
     languages = FieldProperty(II18nManager['languages'])
 
     def get_languages(self):
+        """Get list of offered languages, including server language"""
         langs = []
         negotiator = query_utility(INegotiator)
         if negotiator is not None:

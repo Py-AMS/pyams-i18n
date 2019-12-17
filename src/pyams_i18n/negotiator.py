@@ -14,6 +14,8 @@
 
 This module defines a I18n negotiator utility, which is responsible of decoding browser
 settings to extract preferred languages.
+
+It also provides Pyramid request properties to set locale.
 """
 
 from persistent import Persistent
@@ -44,6 +46,7 @@ class Negotiator(Persistent, Contained):
     cache_enabled = FieldProperty(INegotiator['cache_enabled'])
 
     def get_language(self, request):
+        # pylint: disable=too-many-branches,too-many-return-statements
         """See :intf:`INegotiator`"""
 
         # lang parameter, if defined, is of higher priority
@@ -92,7 +95,8 @@ class Negotiator(Persistent, Contained):
 
         return self.server_language
 
-    def clear_cache(self, request):
+    @staticmethod
+    def clear_cache(request):
         """Clear cached language value"""
         try:
             del request.annotations[LANGUAGE_CACHE_KEY]
@@ -107,7 +111,8 @@ class LangNamespaceTraverser(ContextRequestAdapter):
     This traverser is mainly used for backward compatibility with previous Zope 3 websites.
     """
 
-    def traverse(self, name, furtherpath=None):
+    def traverse(self, name, furtherpath=None):  # pylint: disable=unused-argument
+        """Traverse to set request parameter to given language attribute"""
         if name != '*':
             self.request.GET['lang'] = name
         return self.context
@@ -142,5 +147,6 @@ def get_locale(request):
 class ZopeNegotiator:
     """Zope language negotiator"""
 
-    def getLanguage(self, langs, env):  # pylint: disable=invalid-name
+    def getLanguage(self, langs, env):  # pylint: disable=invalid-name,unused-argument,no-self-use
+        """Get current language negotiator"""
         return locale_negotiator(env)

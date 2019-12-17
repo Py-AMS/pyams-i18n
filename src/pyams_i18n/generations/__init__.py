@@ -29,12 +29,12 @@ REQUIRED_UTILITIES = ((INegotiator, '', Negotiator, 'Language negotiator'),)
 
 
 @utility_config(name='PyAMS I18n', provides=ISiteGenerations)
-class I18nGenerationsChecker(object):
+class I18nGenerationsChecker:
     """I18n generations checker"""
 
     order = 20
     generation = 1
 
-    def evolve(self, site, current=None):
+    def evolve(self, site, current=None):  # pylint: disable=unused-argument,no-self-use
         """Check for required utilities"""
         check_required_utilities(site, REQUIRED_UTILITIES)

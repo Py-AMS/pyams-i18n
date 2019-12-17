@@ -12,6 +12,7 @@
 
 """PyAMS_i18n.interfaces module
 
+This module provides all package interfaces and constants.
 """
 
 from zope.interface import Interface, invariant
@@ -72,6 +73,7 @@ class INegotiator(Interface):
 
     @invariant
     def check_policy(self):
+        """Check against invalid policy"""
         if self.policy not in LANGUAGE_POLICIES:
             raise Invalid(_("Unsupported language policy"))
 
