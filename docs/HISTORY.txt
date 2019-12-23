@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.0.1
+-----
+ - force server language of language negotiator in constructor to avoid recursion error when
+   getting localizer
+
 1.0.0
 -----
  - initial release
