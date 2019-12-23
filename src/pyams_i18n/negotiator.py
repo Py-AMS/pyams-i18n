@@ -30,7 +30,7 @@ from zope.traversing.interfaces import ITraversable
 from pyams_i18n.interfaces import INegotiator, LANGUAGE_CACHE_KEY
 from pyams_utils.adapter import ContextRequestAdapter, adapter_config
 from pyams_utils.i18n import get_browser_language
-from pyams_utils.registry import query_utility, utility_config
+from pyams_utils.registry import get_global_registry, query_utility, utility_config
 
 
 __docformat__ = 'restructuredtext'
@@ -44,6 +44,9 @@ class Negotiator(Persistent, Contained):
     server_language = FieldProperty(INegotiator['server_language'])
     offered_languages = FieldProperty(INegotiator['offered_languages'])
     cache_enabled = FieldProperty(INegotiator['cache_enabled'])
+
+    def __init__(self):
+        self.server_language = 'en'
 
     def get_language(self, request):
         # pylint: disable=too-many-branches,too-many-return-statements
@@ -130,7 +133,7 @@ def locale_negotiator(request):
     else:
         locale_name = get_browser_language(request)
     if not locale_name:
-        registry = request.registry
+        registry = get_global_registry()
         locale_name = registry.settings.get('pyramid.default_locale_name', 'en')
     if '-' in locale_name:
         # remove 'sub-locale' to prevent Babel and Zope exceptions for unknown locales
