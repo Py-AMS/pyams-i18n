@@ -133,7 +133,7 @@ def locale_negotiator(request):
     else:
         locale_name = get_browser_language(request)
     if not locale_name:
-        registry = get_global_registry()
+        registry = request.registry
         locale_name = registry.settings.get('pyramid.default_locale_name', 'en')
     if '-' in locale_name:
         # remove 'sub-locale' to prevent Babel and Zope exceptions for unknown locales
