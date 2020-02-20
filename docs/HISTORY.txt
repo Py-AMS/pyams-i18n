@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.0.3
+-----
+ - updated doctests
+
 1.0.2
 -----
  - use request's registry instead of global registry when looking for settings
