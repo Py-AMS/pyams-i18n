@@ -28,6 +28,22 @@ PyAMS_i18n provides a site generation utility, which automatically create a nego
     >>> from pyams_i18n import includeme as include_i18n
     >>> include_i18n(config)
 
+
+Using negotiator
+----------------
+
+A negotiator is a registered utility which can be used to define how language selection is made;
+several policies are available, between:
+
+ - browser: used language is based on browser's settings, transmitted into requests headers
+
+ - session: the session is stored into a user's attribute which is stored into it's session
+
+ - server: the language is extrated from server settings.
+
+You can also choose to select a "combined" policy, which will scan several options before chossing
+a language, for example "session -> browser -> server" (which is the default).
+
     >>> from zope.traversing.interfaces import BeforeTraverseEvent
     >>> from pyramid.threadlocal import manager
     >>> from pyams_utils.registry import handle_site_before_traverse, get_local_registry
@@ -58,6 +74,90 @@ PyAMS_i18n also defines request properties, like locale and localizer:
     <pyramid.i18n.Localizer object at 0x...>
     >>> loc.locale_name
     'en'
+
+
+Languages vocabularies
+----------------------
+
+There are two defined vocabularies concerning languages; the first on called "Offered languages",
+provides a list of languages which can be selected as "server" policies, or which can be selected
+when you need to provide translations of a given content:
+
+    >>> from zope.schema.vocabulary import getVocabularyRegistry
+    >>> from pyams_i18n.interfaces import OFFERED_LANGUAGES_VOCABULARY_NAME
+
+    >>> context = {}
+    >>> registry = getVocabularyRegistry()
+
+    >>> from pyams_i18n.interfaces import INegotiator
+    >>> config.registry.registerUtility(negotiator, INegotiator)
+    >>> negotiator.offered_languages =  {'en', 'fr', 'es'}
+    >>> languages = registry.get(context, OFFERED_LANGUAGES_VOCABULARY_NAME)
+    >>> languages
+    <...I18nOfferedLanguages object at 0x...>
+    >>> len(languages)
+    3
+    >>> languages.getTermByToken('en').value
+    'en'
+    >>> languages.getTermByToken('en').title
+    'English'
+    >>> languages.getTermByToken('fr').value
+    'fr'
+    >>> languages.getTermByToken('fr').title
+    'French'
+
+When languagas have been selected for a given I18n content manager, you can select which languages
+are selected for a given content using another vocabulary:
+
+    >>> from pyams_i18n.interfaces import CONTENT_LANGUAGES_VOCABULARY_NAME
+    >>> languages = registry.get(context, CONTENT_LANGUAGES_VOCABULARY_NAME)
+    >>> languages
+    <...I18nContentLanguages object at 0x...>
+    >>> len(languages)
+    1
+
+There is only one language actually in this vocabulary, which is the server language:
+
+    >>> languages.getTerm('en').title
+    'English'
+    >>> languages.getTerm('fr').title
+    Traceback (most recent call last):
+    ...
+    LookupError: fr
+
+We first have to create a I18n manager, which will be the parent of our future context:
+
+    >>> from zope.interface import alsoProvides
+    >>> from pyams_i18n.content import I18nManagerMixin
+
+    >>> manager = I18nManagerMixin()
+    >>> manager.languages = ['en', 'fr']
+
+    >>> from zope.container.contained import Contained
+    >>> context = Contained()
+    >>> context.__parent__ = manager
+    >>> languages = registry.get(context, CONTENT_LANGUAGES_VOCABULARY_NAME)
+    >>> languages
+    <...I18nContentLanguages object at 0x...>
+    >>> len(languages)
+    2
+    >>> [t.value for t in languages]
+    ['en', 'fr']
+    >>> languages.getTerm('en').title
+    'English'
+    >>> languages.getTerm('fr').title
+    'French'
+
+Server language is automatically added to content available languages, always in first place:
+
+    >>> manager.languages = ['fr', 'es']
+    >>> languages = registry.get(context, CONTENT_LANGUAGES_VOCABULARY_NAME)
+    >>> languages
+    <...I18nContentLanguages object at 0x...>
+    >>> len(languages)
+    3
+    >>> [t.value for t in languages]
+    ['en', 'fr', 'es']
 
 
 Using I18n manager
@@ -194,7 +294,7 @@ template:
     >>> from pyams_template.interfaces import IContentTemplate
     >>> from pyams_template.template import TemplateFactory, get_content_template
     >>> factory = TemplateFactory(template, 'text/html')
-    >>> config.registry.registerAdapter(factory, (Interface, IRequest), IContentTemplate)
+    >>> config.registry.registerAdapter(factory, (Interface, IRequest, Interface), IContentTemplate)
 
     >>> from pyams_utils.adapter import ContextRequestAdapter
     >>> @implementer(Interface)
@@ -220,7 +320,7 @@ this method is that it also provides a default value is requested property doesn
     >>> with open(template, 'w') as file:
     ...     _ = file.write("<div>${tales:i18n(context, 'missing_property', 'Default value')}</div>")
     >>> factory = TemplateFactory(template, 'text/html')
-    >>> config.registry.registerAdapter(factory, (Interface, IRequest), IContentTemplate)
+    >>> config.registry.registerAdapter(factory, (Interface, IRequest, Interface), IContentTemplate)
 
     >>> my_view = MyContentView(my_content, request)
     >>> print(my_view())
