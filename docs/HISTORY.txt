@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.0.4
+-----
+ - updated Travis-CI integration
+
 1.0.3
 -----
  - updated doctests
