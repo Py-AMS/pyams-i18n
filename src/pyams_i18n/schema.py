@@ -29,19 +29,21 @@ __docformat__ = 'restructuredtext'
 _MARKER = object()
 
 
-class DefaultValueDict(PersistentMapping):
+class DefaultValueMapping(PersistentMapping):
     """Persistent mapping with default value"""
 
     def __init__(self, default=None, *args, **kwargs):
         # pylint: disable=keyword-arg-before-vararg
-        super(DefaultValueDict, self).__init__(*args, **kwargs)
+        super(DefaultValueMapping, self).__init__(*args, **kwargs)
         self._default = default
 
     def __missing__(self, key):
-        return self._default
+        if self._default is not None:
+            return self._default
+        raise KeyError(key)
 
     def get(self, key, default=None):
-        result = super(DefaultValueDict, self).get(key, _MARKER)
+        result = super(DefaultValueMapping, self).get(key, _MARKER)
         if result is _MARKER:
             if default is not None:
                 return default
@@ -49,7 +51,7 @@ class DefaultValueDict(PersistentMapping):
         return result
 
     def copy(self):
-        return DefaultValueDict(default=self._default, **self)
+        return DefaultValueMapping(default=self._default, **self)
 
 
 #
@@ -65,8 +67,11 @@ class I18nField(Dict):
     """I18n base field class"""
 
     def __init__(self, key_type=None, value_type=None, **kwargs):
-        # DefaultValueDict.__init__(self, default)
+        default = kwargs.get('default')
+        if default is not None:
+            del kwargs['default']
         Dict.__init__(self, key_type=TextLine(), value_type=value_type, **kwargs)
+        self.default = default
 
     def _validate(self, value):
         super(I18nField, self)._validate(value)
@@ -95,8 +100,8 @@ class I18nTextLineField(I18nField):
         super(I18nTextLineField, self).__init__(value_type=TextLine(constraint=value_constraint,
                                                                     min_length=value_min_length,
                                                                     max_length=value_max_length,
-                                                                    default=default,
                                                                     required=False),
+                                                default=default,
                                                 **kwargs)
 
 
@@ -114,8 +119,8 @@ class I18nTextField(I18nField):
         super(I18nTextField, self).__init__(value_type=Text(constraint=value_constraint,
                                                             min_length=value_min_length,
                                                             max_length=value_max_length,
-                                                            default=default,
                                                             required=False),
+                                            default=default,
                                             **kwargs)
 
 
@@ -133,6 +138,6 @@ class I18nHTMLField(I18nField):
         super(I18nHTMLField, self).__init__(value_type=HTMLField(constraint=value_constraint,
                                                                  min_length=value_min_length,
                                                                  max_length=value_max_length,
-                                                                 default=default,
                                                                  required=False),
+                                            default=default,
                                             **kwargs)
