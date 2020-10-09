@@ -40,7 +40,7 @@ class I18nAttributeTraverser(ContextAdapter):
         try:
             attr, lang = name.split(':')
             return getattr(self.context, attr, {}).get(lang)
-        except AttributeError:
+        except (AttributeError, ValueError):
             raise NotFound
 
 
@@ -59,7 +59,7 @@ class I18nAttributeAdapter(ContextAdapter):
             lang = request.params.get('lang') or request.locale_name
         return result.get(lang, default)
 
-    def query_attribute(self, attribute, lang=None, request=None):
+    def query_attribute(self, attribute, lang=None, request=None, default=None):
         """Extract attribute value for given language or request
 
         If value is empty or None, value associated to server language is returned.
@@ -72,6 +72,9 @@ class I18nAttributeAdapter(ContextAdapter):
                 request = check_request()
             lang = request.params.get('lang') or request.locale_name
         value = result.get(lang)
+        if not value:
+            if default:
+                value = default.get(lang)
         if not value:
             negotiator = query_utility(INegotiator)
             if (negotiator is not None) and (negotiator.server_language != lang):

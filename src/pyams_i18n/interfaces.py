@@ -119,5 +119,5 @@ class II18n(Interface):
     def get_attribute(self, attribute, lang=None, request=None, default=None):
         """Get attribute in given language"""
 
-    def query_attribute(self, attribute, lang=None, request=None):
+    def query_attribute(self, attribute, lang=None, request=None, default=None):
         """Query attribute in given language"""
