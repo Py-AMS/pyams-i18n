@@ -471,6 +471,6 @@ class ISOLanguagesVocabulary(SimpleVocabulary):
     def __init__(self, context=None):  # pylint: disable=unused-argument
         request = check_request()
         translate = request.localizer.translate
-        terms = sorted([SimpleTerm(v, title=translate(t)) for v, t in ISO_LANGUAGES.items()])
-        terms.sort(key=lambda x: x.title)
+        terms = sorted([SimpleTerm(v, title=translate(t)) for v, t in ISO_LANGUAGES.items()],
+                       key=lambda x: x.title)
         super(ISOLanguagesVocabulary, self).__init__(terms)
