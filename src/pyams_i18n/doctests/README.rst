@@ -1,3 +1,4 @@
+
 ==================
 PyAMS_i18n package
 ==================
@@ -16,7 +17,7 @@ Site upgrade
 PyAMS_i18n provides a site generation utility, which automatically create a negotiator utility:
 
     >>> from pyramid.testing import setUp, tearDown, DummyRequest
-    >>> config = setUp()
+    >>> config = setUp(hook_zca=True)
     >>> config.registry.settings['zodbconn.uri'] = 'memory://'
 
     >>> from pyramid_zodbconn import includeme as include_zodbconn
@@ -55,7 +56,6 @@ a language, for example "session -> browser -> server" (which is the default).
     Upgrading PyAMS I18n to generation 1...
 
     >>> handle_site_before_traverse(BeforeTraverseEvent(app, request))
-    >>> manager.push({'request': request, 'registry': config.registry})
 
     >>> 'Language negotiator' in app.getSiteManager()
     True
@@ -66,6 +66,8 @@ a language, for example "session -> browser -> server" (which is the default).
     'en'
     >>> negotiator.offered_languages
     {'en'}
+    >>> negotiator.cache_enabled
+    False
 
 PyAMS_i18n also defines request properties, like locale and localizer:
 
@@ -74,6 +76,49 @@ PyAMS_i18n also defines request properties, like locale and localizer:
     <pyramid.i18n.Localizer object at 0x...>
     >>> loc.locale_name
     'en'
+
+Language can also be set using a request parameter:
+
+    >>> request2 = DummyRequest(params={'lang': 'fr'})
+    >>> negotiator.get_language(request2)
+    'fr'
+
+We can try to activate cache; iin this case negotiator changes won't impact request:
+
+    >>> negotiator.cache_enabled = True
+
+    >>> request3 = DummyRequest()
+    >>> request3.session['language'] = 'it'
+    >>> negotiator.get_language(request3)
+    'en'
+    >>> negotiator.clear_cache(request3)
+
+    >>> request3.annotations = {}
+    >>> negotiator.get_language(request3)
+    'it'
+    >>> negotiator.get_language(request3)
+    'it'
+
+    >>> negotiator.clear_cache(request3)
+    >>> negotiator.server_language = 'en'
+    >>> negotiator.cache_enabled = False
+
+
+Using ++lang++ namespace traverser
+----------------------------------
+
+The "++lang++" namespace traverser is a custom traverser which was used before and was kept
+for compatibility; using the "lang=" request parameter is actually preferred:
+
+    >>> from pyams_i18n.negotiator import LangNamespaceTraverser
+
+    >>> context = object()
+    >>> request4 = DummyRequest()
+    >>> traverser = LangNamespaceTraverser(context, request4)
+    >>> traverser.traverse('fr') is context
+    True
+    >>> request4.params.get('lang')
+    'fr'
 
 
 Languages vocabularies
@@ -159,6 +204,15 @@ Server language is automatically added to content available languages, always in
     >>> [t.value for t in languages]
     ['en', 'fr', 'es']
 
+Another vocabulary is the ISO languages vocabulary:
+
+    >>> from pyams_i18n.interfaces import ISO_LANGUAGES_VOCABULARY_NAME
+    >>> iso_languages = registry.get(context, ISO_LANGUAGES_VOCABULARY_NAME)
+    >>> iso_languages
+    <...ISOLanguagesVocabulary object at 0x...>
+    >>> len(iso_languages)
+    232
+
 
 Using I18n manager
 ------------------
@@ -189,6 +243,99 @@ into languages list:
 I18n manager is a base class for many contents handling translations.
 
 
+Defautl value mapping
+---------------------
+
+The DefaultValueMapping is a custom persistent mapping class with a default value:
+
+    >>> from pyams_i18n.schema import DefaultValueMapping
+
+Let's start with a mapping without default value:
+
+    >>> mapping = DefaultValueMapping()
+    >>> mapping.get('key') is None
+    True
+    >>> mapping.get('key', 'value')
+    'value'
+    >>> mapping['key']
+    Traceback (most recent call last):
+    ...
+    KeyError: 'key'
+
+Let's see know how it works when we define a default value:
+
+    >>> mapping = DefaultValueMapping('default')
+    >>> mapping.get('key')
+    'default'
+
+When a default value is defined, it's value takes precedence over another default value given
+to the "get" method:
+
+    >>> mapping.get('key', 'value')
+    'default'
+    >>> mapping['key']
+    'default'
+
+    >>> mapping['key'] = 'another value'
+    >>> mapping.get('key')
+    'another value'
+
+    >>> mapping.copy().get('key2')
+    'default'
+
+
+I18n schema fields
+------------------
+
+PyAMS_i18n provides several custom schema fields which can be used to define properties
+which can be set for several languages; they all inherit from a base I18n schema field, which
+is a mapping whose keys are languages:
+
+    >>> from pyams_i18n.schema import I18nField
+    >>> field = I18nField(title='I18n base field', required=True)
+    >>> field.validate(None)
+    Traceback (most recent call last):
+    ...
+    zope.schema._bootstrapinterfaces.RequiredMissing
+
+A required I18n field is validated as soon as at least one language value is set:
+
+    >>> field.validate({'en': None})
+    Traceback (most recent call last):
+    ...
+    zope.schema._bootstrapinterfaces.RequiredMissing
+
+    >>> field.validate({'en': 'Text value', 'fr': None})
+
+You can set a default value on this generic field type:
+
+    >>> field = I18nField(title='I18n base field', required=True,
+    ...                   default={'en': 'Default'})
+    >>> field.validate(None)
+    Traceback (most recent call last):
+    ...
+    zope.schema._bootstrapinterfaces.RequiredMissing
+    >>> field.validate({'en': 'value'})
+
+Let's try with an I18n text line field:
+
+    >>> from pyams_i18n.schema import I18nTextLineField
+    >>> field = I18nTextLineField(title='I18n textline', required=True,
+    ...                           default={'en': 'Default text'})
+    >>> field.validate(None)
+    Traceback (most recent call last):
+    ...
+    zope.schema._bootstrapinterfaces.RequiredMissing
+    >>> field.validate({'en': 'value'})
+
+Validation rules are applied to each language individually:
+
+    >>> field.validate({'en': 'Value\nwith\nbreaks'})
+    Traceback (most recent call last):
+    ...
+    zope.schema._bootstrapinterfaces.WrongContainedType: ([ConstraintNotSatisfied('Value\nwith\nbreaks', '')], '')
+
+
 Translated properties
 ---------------------
 
@@ -196,16 +343,20 @@ After setting server settings, it's time to create custom interfaces to handle t
 properties:
 
     >>> from zope.interface import implementer, Interface
+    >>> from zope.schema import TextLine
     >>> from zope.schema.fieldproperty import FieldProperty
     >>> from pyams_i18n.schema import I18nTextLineField, I18nTextField, I18nHTMLField
 
     >>> class IMyI18nContent(Interface):
-    ...     text_line = I18nTextLineField(title="Text line field")
+    ...     name = TextLine(title='Name')
+    ...     text_line = I18nTextLineField(title="Text line field",
+    ...                                   default={'de': 'German text'})
     ...     text = I18nTextField(title="Text field")
     ...     html = I18nHTMLField(title="HTML field")
 
     >>> @implementer(IMyI18nContent)
     ... class MyI18nContent:
+    ...     name = FieldProperty(IMyI18nContent['name'])
     ...     text_line = FieldProperty(IMyI18nContent['text_line'])
     ...     text = FieldProperty(IMyI18nContent['text'])
     ...     html = FieldProperty(IMyI18nContent['html'])
@@ -224,6 +375,7 @@ classic values matching each field type:
     >>> value = {'en': "Text line", 'fr': "Ligne de texte"}
     >>> IMyI18nContent['text_line'].validate(value)
 
+    >>> my_content.name = 'Name'
     >>> my_content.text_line = value
 
 
@@ -240,6 +392,11 @@ used:
     >>> i18n.query_attribute('text_line', request=request)
     'Text line'
 
+Getting value of a classic attribute shouldn't raise an exception:
+
+    >>> i18n.query_attribute('name', request=request)
+    'Name'
+
 Of course, we can change browser settings to get another translated value:
 
     >>> request = DummyRequest(headers={'Accept-Language': 'fr, en-US;q=0.9'})
@@ -253,6 +410,8 @@ Of course, we can change browser settings to get another translated value:
 It's also possible to get any translated value "as is", without using request headers, eventually
 by providing a default value:
 
+    >>> i18n.get_attribute('name', request=request) is None
+    True
     >>> i18n.get_attribute('text_line', request=request) is None
     True
     >>> i18n.get_attribute('text_line', lang='es') is None
@@ -274,6 +433,31 @@ need to modify your browser settings (this feature is used by PyAMS_content pack
     >>> request.session['language'] = 'fr'
     >>> i18n.query_attribute('text_line', request=request)
     'Ligne de texte'
+
+Getting an un-translated lang may return default value, if any:
+
+    >>> i18n.query_attribute('text_line', lang='de', default=IMyI18nContent['text_line'].default)
+    'German text'
+
+
+Getting request locale
+----------------------
+
+Locale can be extracted from request:
+
+    >>> from pyams_i18n.negotiator import locale_negotiator
+
+    >>> request = DummyRequest(headers={'Accept-Language': 'fr, en-US;q=0.9'})
+    >>> locale_negotiator(request)
+    'fr'
+
+A Zope equivalent locale is also available for compatibility:
+
+    >>> from pyams_i18n.negotiator import get_locale
+
+    >>> request = DummyRequest(headers={'Accept-Language': 'fr, en-US;q=0.9'})
+    >>> get_locale(request)
+    <zope.i18n.locales.Locale object at 0x...>
 
 
 I18n TALES expression
@@ -314,8 +498,8 @@ Using a different request setting should return another result:
     >>> print(my_view())
     <div>Text line</div>
 
-Another option is to use the "i18n" TALES extension, as provided my PyAMS_utils; the benefit of
-this method is that it also provides a default value is requested property doesn't exist:
+Another option is to use the "i18n" TALES extension, as provided by PyAMS_utils; the benefit of
+this method is that it also provides a default value if requested property doesn't exist:
 
     >>> with open(template, 'w') as file:
     ...     _ = file.write("<div>${tales:i18n(context, 'missing_property', 'Default value')}</div>")
@@ -325,6 +509,27 @@ this method is that it also provides a default value is requested property doesn
     >>> my_view = MyContentView(my_content, request)
     >>> print(my_view())
     <div>Default value</div>
+
+
+I18n traverser
+--------------
+
+A "++i18n++" traverser can be used to get a direct access to an internal I18n attribute; this is
+actually used to get access to I18n file fields values.
+
+You can specify attribute name and lang like this:
+
+    >>> from pyams_i18n.attr import I18nAttributeTraverser
+    >>> traverser = I18nAttributeTraverser(my_content)
+    >>> traverser.traverse('text_line:en')
+    'Text line'
+    >>> traverser.traverse('text_line:fr')
+    'Ligne de texte'
+
+    >>> traverser.traverse('missing_property')
+    Traceback (most recent call last):
+    ...
+    pyramid.httpexceptions.HTTPNotFound: The resource could not be found.
 
 
 Tests cleanup:
