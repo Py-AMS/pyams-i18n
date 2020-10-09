@@ -30,7 +30,7 @@ from zope.traversing.interfaces import ITraversable
 from pyams_i18n.interfaces import INegotiator, LANGUAGE_CACHE_KEY
 from pyams_utils.adapter import ContextRequestAdapter, adapter_config
 from pyams_utils.i18n import get_browser_language
-from pyams_utils.registry import get_global_registry, query_utility, utility_config
+from pyams_utils.registry import query_utility, utility_config
 
 
 __docformat__ = 'restructuredtext'
@@ -103,7 +103,7 @@ class Negotiator(Persistent, Contained):
         """Clear cached language value"""
         try:
             del request.annotations[LANGUAGE_CACHE_KEY]
-        except KeyError:
+        except (AttributeError, KeyError):
             pass
 
 
