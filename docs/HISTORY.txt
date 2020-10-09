@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0.5
+-----
+ - updated management of default value in I18n schema fields
+ - added "default" argument in II18n "query_attribute" method
+ - updated doctests
+
 1.0.4
 -----
  - updated Travis-CI integration
