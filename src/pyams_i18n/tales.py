@@ -59,13 +59,16 @@ class I18nExpr(ContextExprMixin, StringExpr):
     transform = Symbol(render_i18n_expression)
 
 
-@adapter_config(name='i18n', context=(Interface, Interface, Interface), provides=ITALESExtension)
+@adapter_config(name='i18n',
+                required=(Interface, Interface, Interface),
+                provides=ITALESExtension)
 class I18NTalesExtension(ContextRequestViewAdapter):
     """tales:i18n(context, attribute, default=None) TALES extension
 
-    Similar to standard i18n: TALES expression, but provides a default value for missing attributes.
-    Please note that this extension returns default value when applied on a non-existent attribute,
-    not on an attribute with an empty value for selected language!
+    Similar to standard i18n: TALES expression, but provides a default value for missing
+    attributes.
+    Please note that this extension returns default value when applied on a non-existent
+    attribute, not on an attribute with an empty value for selected language!
     """
 
     def render(self, context, attribute, default=None):

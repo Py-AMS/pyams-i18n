@@ -15,8 +15,7 @@
 This module provides all package interfaces and constants.
 """
 
-from zope.interface import Interface, invariant
-from zope.interface.interfaces import Invalid
+from zope.interface import Interface, Invalid, invariant
 from zope.schema import Bool, Choice, List, Set
 
 

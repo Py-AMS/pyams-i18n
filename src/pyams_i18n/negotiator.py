@@ -107,7 +107,7 @@ class Negotiator(Persistent, Contained):
             pass
 
 
-@adapter_config(name='lang', context=(Interface, IRequest), provides=ITraversable)
+@adapter_config(name='lang', required=(Interface, IRequest), provides=ITraversable)
 class LangNamespaceTraverser(ContextRequestAdapter):
     """++lang++ namespace traverser
 
