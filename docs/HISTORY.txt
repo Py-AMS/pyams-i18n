@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.0.6
+-----
+ - updated "adapter_config" decorator arguments names
+
 1.0.5
 -----
  - updated management of default value in I18n schema fields

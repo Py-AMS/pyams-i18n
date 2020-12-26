@@ -56,8 +56,8 @@ msgstr "Activer le cache"
 #: src/pyams_i18n/interfaces.py:69
 msgid "Language caching enabled (per request)"
 msgstr ""
-"Un cache peut-être activé au niveau de chaque requête pour réduire les "
-"tempsde recherche"
+"Un cache peut être activé au niveau de chaque requête pour réduire les "
+"temps de recherche"
 
 #: src/pyams_i18n/interfaces.py:98
 msgid "Proposed languages"
