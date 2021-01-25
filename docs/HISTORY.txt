@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.0.7
+-----
+ - removed Travis-CI configuration
+
 1.0.6
 -----
  - updated "adapter_config" decorator arguments names
