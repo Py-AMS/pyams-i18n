@@ -1,2 +1,3 @@
 [run]
 source = src/pyams_i18n
+omit = src/pyams_i18n/tests/*
