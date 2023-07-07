@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.2.0
+-----
+ - added support for default value when using I18n query_attribute method
+   or i18n TALES extension
+ - added support for Python 3.10 and 3.11
+
 1.1.0
 -----
  - removed support for Python < 3.7
