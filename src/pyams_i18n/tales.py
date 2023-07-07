@@ -73,9 +73,4 @@ class I18NTalesExtension(ContextRequestViewAdapter):
 
     def render(self, context, attribute, default=None):
         """Render TALES extension"""
-        try:
-            # pylint: disable=assignment-from-no-return
-            value = II18n(context).query_attribute(attribute, request=self.request)
-        except AttributeError:
-            value = default
-        return value
+        return II18n(context).query_attribute(attribute, request=self.request, default=default)

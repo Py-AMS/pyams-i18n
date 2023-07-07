@@ -28,7 +28,9 @@ from pyams_utils.request import check_request
 __docformat__ = 'restructuredtext'
 
 
-@adapter_config(name='i18n', required=Interface, provides=ITraversable)
+@adapter_config(name='i18n',
+                required=Interface,
+                provides=ITraversable)
 class I18nAttributeTraverser(ContextAdapter):
     """++i18n++attr:lang namespace traverser
 
@@ -44,7 +46,8 @@ class I18nAttributeTraverser(ContextAdapter):
             raise NotFound
 
 
-@adapter_config(required=Interface, provides=II18n)
+@adapter_config(required=Interface,
+                provides=II18n)
 class I18nAttributeAdapter(ContextAdapter):
     """I18n attribute adapter"""
 
@@ -64,7 +67,7 @@ class I18nAttributeAdapter(ContextAdapter):
 
         If value is empty or None, value associated to server language is returned.
         """
-        result = getattr(self.context, attribute)
+        result = getattr(self.context, attribute, default)
         if not isinstance(result, dict):
             return result
         if lang is None:
