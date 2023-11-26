@@ -1,6 +1,10 @@
 Changelog
 =========
 
+2.0.0
+-----
+ - migrated to Pyramid 2.0
+
 1.2.0
 -----
  - added support for default value when using I18n query_attribute method
