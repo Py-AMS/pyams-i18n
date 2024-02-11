@@ -120,3 +120,6 @@ class II18n(Interface):
 
     def query_attribute(self, attribute, lang=None, request=None, default=None):
         """Query attribute in given language"""
+
+    def query_attributes_in_order(self, attributes, lang=None, request=None, default=None):
+        """Query several attributes in specified order"""

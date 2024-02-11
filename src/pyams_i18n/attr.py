@@ -83,3 +83,11 @@ class I18nAttributeAdapter(ContextAdapter):
             if (negotiator is not None) and (negotiator.server_language != lang):
                 value = result.get(negotiator.server_language)
         return value
+
+    def query_attributes_in_order(self, attributes, lang=None, request=None, default=None):
+        """Extract attributes in given order for given language or request"""
+        for attribute in attributes:
+            value = self.query_attribute(attribute, lang, request)
+            if value:
+                return value
+        return default

@@ -245,7 +245,7 @@ into languages list:
 I18n manager is a base class for many contents handling translations.
 
 
-Defautl value mapping
+Default value mapping
 ---------------------
 
 The DefaultValueMapping is a custom persistent mapping class with a default value:
@@ -434,6 +434,11 @@ need to modify your browser settings (this feature is used by PyAMS_content pack
     >>> request = DummyRequest()
     >>> request.session['language'] = 'fr'
     >>> i18n.query_attribute('text_line', request=request)
+    'Ligne de texte'
+
+You can also try to get several attributes from a given list:
+
+    >>> i18n.query_attributes_in_order(('text', 'text_line'), request=request)
     'Ligne de texte'
 
 Getting an un-translated lang may return default value, if any:
