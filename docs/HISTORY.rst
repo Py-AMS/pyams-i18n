@@ -1,6 +1,10 @@
 Changelog
 =========
 
+2.1.0
+-----
+ - added method to get I18n value from several attributes given in specific order
+
 2.0.0
 -----
  - migrated to Pyramid 2.0
