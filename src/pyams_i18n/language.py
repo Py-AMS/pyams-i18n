@@ -222,10 +222,16 @@ class BaseLanguagesVocabulary(SimpleVocabulary):
 
     def __init__(self, context=None):  # pylint: disable=unused-argument
         request = check_request()
-        translate = request.localizer.translate
-        terms = sorted([SimpleTerm(v, title=translate(t)) for v, t in BASE_LANGUAGES.items()],
-                       key=lambda x: x.title)
-        super(BaseLanguagesVocabulary, self).__init__(terms)
+        try:
+            translate = request.localizer.translate
+        except RecursionError:
+            # a recursion error can occur when upgrading an empty site without a negotiator!
+            translate = lambda x: x
+        terms = sorted([
+            SimpleTerm(v, title=translate(t))
+            for v, t in BASE_LANGUAGES.items()
+        ], key=lambda x: x.title)
+        super().__init__(terms)
 
 
 ISO_LANGUAGES = {
@@ -470,7 +476,13 @@ class ISOLanguagesVocabulary(SimpleVocabulary):
 
     def __init__(self, context=None):  # pylint: disable=unused-argument
         request = check_request()
-        translate = request.localizer.translate
-        terms = sorted([SimpleTerm(v, title=translate(t)) for v, t in ISO_LANGUAGES.items()],
-                       key=lambda x: x.title)
-        super(ISOLanguagesVocabulary, self).__init__(terms)
+        try:
+            translate = request.localizer.translate
+        except RecursionError:
+            # a recursion error can occur when upgrading an empty site without a negotiator!
+            translate = lambda x: x
+        terms = sorted([
+            SimpleTerm(v, title=translate(t))
+            for v, t in ISO_LANGUAGES.items()
+        ], key=lambda x: x.title)
+        super().__init__(terms)
