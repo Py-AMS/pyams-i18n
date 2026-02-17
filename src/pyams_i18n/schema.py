@@ -34,7 +34,7 @@ class DefaultValueMapping(PersistentMapping):
 
     def __init__(self, default=None, *args, **kwargs):
         # pylint: disable=keyword-arg-before-vararg
-        super(DefaultValueMapping, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._default = default
 
     def __missing__(self, key):
@@ -43,11 +43,14 @@ class DefaultValueMapping(PersistentMapping):
         raise KeyError(key)
 
     def get(self, key, default=None):
-        result = super(DefaultValueMapping, self).get(key, _MARKER)
+        """Mapping value getter
+
+        If mapping default value is set, it takes precedence
+        over default value given to getter method.
+        """
+        result = super().get(key, _MARKER)
         if result is _MARKER:
-            if default is not None:
-                return default
-            return self._default
+            return self._default if self._default is not None else default
         return result
 
     def copy(self):
