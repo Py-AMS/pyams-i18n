@@ -1,6 +1,10 @@
 Changelog
 =========
 
+2.1.2
+-----
+ - updated support for Python 3.12
+
 2.1.1
 -----
  - added exception handler when no registered negotiator is found
