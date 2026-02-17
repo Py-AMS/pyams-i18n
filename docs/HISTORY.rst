@@ -1,6 +1,11 @@
 Changelog
 =========
 
+2.1.1
+-----
+ - added exception handler when no registered negotiator is found
+ - added support for Python 3.12
+
 2.1.0
 -----
  - added method to get I18n value from several attributes given in specific order
